@@ -1,1 +1,62 @@
+# Hardware - Secrets and credentials
+hardware/include/secrets.h
+hardware/include/secrets_example.h
 
+# Python virtual environments
+ai_engine/venv/
+ai_engine/env/
+ai_engine/__pycache__/
+ai_engine/*.pyc
+ai_engine/*.pyo
+ai_engine/build/
+ai_engine/dist/
+ai_engine/*.egg-info/
+
+# Node-RED credentials and runtime data
+node_red/node_modules/
+node_red/.node-red/
+node_red/flows_cred.json
+node_red/node_modules.json
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build outputs
+*.o
+*.a
+*.lib
+*.exe
+*.out
+*.bin
+*.elf
+.build/
+build/
+dist/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+
+# Environment files
+.env
+.env.local
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Web dashboard build
+web_dashboard/dist/
+web_dashboard/node_modules/
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
