@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<title>ESP32 SmartHome — Sơ đồ kết nối</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@600;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#07090f;color:#c5d4e8;font-family:'Space Mono',monospace;font-size:13px;padding:20px;}
+h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#eaf4ff;letter-spacing:3px;text-align:center;margin-bottom:4px;}
+.sub{text-align:center;color:#485a70;font-size:11px;letter-spacing:2px;margin-bottom:28px;}
+
+.diagram{display:grid;grid-template-columns:1fr 180px 1fr;gap:0;max-width:1000px;margin:0 auto;}
+
+/* ESP32 CENTER */
+.esp32{background:linear-gradient(180deg,#1a2e44,#0f1e30);border:2px solid #00d4ff;border-radius:12px;padding:14px 10px;position:relative;box-shadow:0 0 30px rgba(0,212,255,0.2);}
+.esp32-label{text-align:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#00d4ff;letter-spacing:2px;margin-bottom:8px;}
+.esp32-chip{width:60px;height:60px;background:linear-gradient(135deg,#2a3f55,#1a2d3e);border:1px solid #00d4ff;border-radius:6px;margin:8px auto;display:flex;align-items:center;justify-content:center;font-size:10px;color:#00d4ff;text-align:center;line-height:1.3;box-shadow:0 0 12px rgba(0,212,255,0.3);}
+.pin-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;}
+.pin-num{background:#0a1a28;border:1px solid #1e3a5f;border-radius:4px;padding:2px 6px;font-size:10px;color:#00d4ff;min-width:54px;text-align:center;}
+.pin-name{font-size:10px;color:#485a70;flex:1;text-align:center;}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* LEFT DEVICES */
+.left-col,.right-col{display:flex;flex-direction:column;justify-content:space-around;gap:10px;padding:10px 0;}
+
+.device-box{background:#111622;border:1px solid #1e3a5f;border-radius:10px;padding:12px;position:relative;}
+.device-box::after{content:'';position:absolute;top:50%;right:-1px;width:20px;height:2px;background:currentColor;transform:translateY(-50%);}
+.device-box.right-dev::after{left:-20px;right:auto;}
+
+.dev-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;margin-bottom:6px;}
+.dev-pin{font-size:10px;color:#485a70;line-height:1.8;}
+.dev-pin span{color:#c5d4e8;}
+.dev-pin .gpin{color:#00d4ff;}
+.dev-pin .gpow{color:#ff3d5a;}
+.dev-pin .ggnd{color:#485a70;}
+.dev-pin .gdata{color:#00e88a;}
+.dev-pin .gpwm{color:#ffc233;}
+.dev-pin .guart{color:#b06dff;}
+
+/* Wire colors */
+.wire-relay{color:#ff3d5a;} .dev-box-relay::after{background:#ff3d5a;}
+.wire-dht{color:#00e88a;} .dev-box-dht::after{background:#00e88a;}
+.wire-servo{color:#ffc233;} .dev-box-servo::after{background:#ffc233;}
+.wire-fan{color:#b06dff;} .dev-box-fan::after{background:#b06dff;}
+.wire-fp{color:#4d9fff;} .dev-box-fp::after{background:#4d9fff;}
+.wire-buzz{color:#ff7a35;} .dev-box-buzz::after{background:#ff7a35;}
+
+/* TABLE */
+.table-section{max-width:1000px;margin:30px auto 0;}
+.table-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#eaf4ff;margin-bottom:12px;letter-spacing:1px;border-left:3px solid #00d4ff;padding-left:10px;}
+table{width:100%;border-collapse:collapse;margin-bottom:24px;}
+th{background:#111622;color:#00d4ff;padding:9px 12px;text-align:left;font-size:11px;letter-spacing:1px;border-bottom:1px solid #1e3a5f;}
+td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;vertical-align:top;}
+tr:hover td{background:rgba(0,212,255,0.03);}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;}
+.b-pwr{background:rgba(255,61,90,0.15);color:#ff3d5a;border:1px solid rgba(255,61,90,0.3);}
+.b-sig{background:rgba(0,232,138,0.12);color:#00e88a;border:1px solid rgba(0,232,138,0.3);}
+.b-pwm{background:rgba(255,194,51,0.12);color:#ffc233;border:1px solid rgba(255,194,51,0.3);}
+.b-uart{background:rgba(176,109,255,0.12);color:#b06dff;border:1px solid rgba(176,109,255,0.3);}
+.b-gnd{background:rgba(72,90,112,0.3);color:#485a70;border:1px solid #485a70;}
+.b-io{background:rgba(0,212,255,0.1);color:#00d4ff;border:1px solid rgba(0,212,255,0.3);}
+
+.note-box{background:#111622;border:1px solid #1e3a5f;border-radius:10px;padding:16px;margin-bottom:16px;}
+.note-box h3{font-family:'Syne',sans-serif;font-size:13px;color:#ffc233;margin-bottom:10px;}
+.note-box li{line-height:2;font-size:12px;color:#c5d4e8;list-style:none;padding-left:16px;position:relative;}
+.note-box li::before{content:'▸';position:absolute;left:0;color:#ffc233;}
+
+.mqtt-flow{background:#0d1a26;border:1px solid #1e3a5f;border-radius:12px;padding:20px;margin-bottom:20px;max-width:1000px;margin:20px auto;}
+.mqtt-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#eaf4ff;margin-bottom:16px;letter-spacing:1px;border-left:3px solid #00e88a;padding-left:10px;}
+.flow-diagram{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;}
+.flow-box{background:#111622;border:1px solid;border-radius:10px;padding:14px 18px;text-align:center;min-width:120px;}
+.flow-box.web{border-color:rgba(0,212,255,0.5);color:#00d4ff;}
+.flow-box.broker{border-color:rgba(0,232,138,0.5);color:#00e88a;}
+.flow-box.esp{border-color:rgba(255,122,53,0.5);color:#ff7a35;}
+.flow-arrow{padding:0 10px;font-size:20px;color:#485a70;}
+.flow-box .fb-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px;}
+.flow-box .fb-sub{font-size:10px;color:#485a70;}
+.topic-table{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+.topic-col h4{font-size:11px;letter-spacing:2px;color:#485a70;margin-bottom:8px;text-transform:uppercase;}
+.topic-row{padding:6px 10px;background:#07090f;border-radius:6px;margin-bottom:5px;border-left:2px solid;}
+.topic-pub{border-color:#00d4ff;}
+.topic-sub{border-color:#00e88a;}
+.topic-name{color:#eaf4ff;font-size:11px;}
+.topic-desc{color:#485a70;font-size:10px;margin-top:1px;}
+</style>
+</head>
+<body>
+
+<h1>ESP32 — NEXTHOME PINOUT</h1>
+<div class="sub">SƠ ĐỒ KẾT NỐI PHẦN CỨNG & MQTT TOPICS</div>
+
+<!-- DIAGRAM -->
+<div class="diagram">
+
+  <!-- LEFT COL -->
+  <div class="left-col">
+
+    <div class="device-box dev-box-relay wire-relay">
+      <div class="dev-title" style="color:#ff3d5a">⚡ Relay Module x3</div>
+      <div class="dev-pin">
+        VCC → <span class="gpow">3.3V hoặc 5V</span><br>
+        GND → <span class="ggnd">GND</span><br>
+        IN1 → <span class="gpin">GPIO 26</span> (AC)<br>
+        IN2 → <span class="gpin">GPIO 27</span> (Đèn PK)<br>
+        IN3 → <span class="gpin">GPIO 14</span> (Đèn PN)
+      </div>
+    </div>
+
+    <div class="device-box dev-box-dht wire-dht">
+      <div class="dev-title" style="color:#00e88a">🌡️ DHT22 x2</div>
+      <div class="dev-pin">
+        VCC → <span class="gpow">3.3V</span><br>
+        GND → <span class="ggnd">GND</span><br>
+        DATA#1 → <span class="gpin">GPIO 21</span> (PK)<br>
+        DATA#2 → <span class="gpin">GPIO 22</span> (PN)<br>
+        <small style="color:#485a70">Pull-up 10kΩ DATA→VCC</small>
+      </div>
+    </div>
+
+    <div class="device-box dev-box-servo wire-servo">
+      <div class="dev-title" style="color:#ffc233">🔄 Servo (Rèm)</div>
+      <div class="dev-pin">
+        VCC (đỏ) → <span class="gpow">5V</span><br>
+        GND (nâu)→ <span class="ggnd">GND</span><br>
+        Signal(vàng)→<span class="gpwm">GPIO 18</span><br>
+        <small style="color:#485a70">0°=mở rèm | 90°=đóng</small>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ESP32 CENTER -->
+  <div class="esp32">
+    <div class="esp32-label">ESP32<br>DevKit V1</div>
+    <div class="esp32-chip">Xtensa<br>LX6<br>240MHz</div>
+
+    <div style="height:6px"></div>
+    <div class="pin-row"><div class="dot" style="background:#ff3d5a"></div><div class="pin-name">Relay</div><div class="pin-num">GPIO 14,26,27</div></div>
+    <div class="pin-row"><div class="dot" style="background:#00e88a"></div><div class="pin-name">DHT22</div><div class="pin-num">GPIO 21,22</div></div>
+    <div class="pin-row"><div class="dot" style="background:#ffc233"></div><div class="pin-name">Servo</div><div class="pin-num">GPIO 18</div></div>
+    <div class="pin-row"><div class="dot" style="background:#b06dff"></div><div class="pin-name">FAN IN1/IN2</div><div class="pin-num">GPIO 32,33</div></div>
+    <div class="pin-row"><div class="dot" style="background:#ffc233"></div><div class="pin-name">FAN ENA(PWM)</div><div class="pin-num">GPIO 25</div></div>
+    <div class="pin-row"><div class="dot" style="background:#4d9fff"></div><div class="pin-name">FP RX/TX</div><div class="pin-num">GPIO 16,17</div></div>
+    <div class="pin-row"><div class="dot" style="background:#ff7a35"></div><div class="pin-name">Buzzer</div><div class="pin-num">GPIO 4</div></div>
+    <div style="height:4px"></div>
+    <div class="pin-row"><div class="dot" style="background:#ff3d5a"></div><div class="pin-name">3.3V / 5V</div><div class="pin-num">VCC</div></div>
+    <div class="pin-row"><div class="dot" style="background:#485a70"></div><div class="pin-name">GND</div><div class="pin-num">GND</div></div>
+  </div>
+
+  <!-- RIGHT COL -->
+  <div class="right-col">
+
+    <div class="device-box dev-box-fan right-dev wire-fan" style="text-align:right">
+      <div class="dev-title" style="color:#b06dff;text-align:right">🌀 L298N + Quạt DC</div>
+      <div class="dev-pin" style="text-align:right">
+        12V → <span class="gpow">Nguồn 12V</span><br>
+        GND → <span class="ggnd">GND chung</span><br>
+        IN1 ← <span class="gpin">GPIO 32</span><br>
+        IN2 ← <span class="gpin">GPIO 33</span><br>
+        ENA ← <span class="gpwm">GPIO 25 (PWM)</span><br>
+        5V out → <span class="gpow">servo/sensor</span><br>
+        <small style="color:#485a70">Tụ 100uF song song quạt</small>
+      </div>
+    </div>
+
+    <div class="device-box dev-box-fp right-dev wire-fp" style="text-align:right">
+      <div class="dev-title" style="color:#4d9fff;text-align:right">👆 AS608 Fingerprint</div>
+      <div class="dev-pin" style="text-align:right">
+        VCC → <span class="gpow">3.3V</span><br>
+        GND → <span class="ggnd">GND</span><br>
+        TX → <span class="guart">GPIO 16 (RX2)</span><br>
+        RX → <span class="guart">GPIO 17 (TX2)</span><br>
+        <small style="color:#485a70">Baud 57600 | UART2</small>
+      </div>
+    </div>
+
+    <div class="device-box dev-box-buzz right-dev wire-buzz" style="text-align:right">
+      <div class="dev-title" style="color:#ff7a35;text-align:right">🔔 Buzzer</div>
+      <div class="dev-pin" style="text-align:right">
+        (+) → <span class="gpin">GPIO 4</span><br>
+        (−) → <span class="ggnd">GND</span><br>
+        <small style="color:#485a70">Active buzzer 5V</small>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MQTT FLOW -->
+<div class="mqtt-flow">
+  <div class="mqtt-title">📡 Luồng MQTT</div>
+  <div class="flow-diagram">
+    <div class="flow-box web">
+      <div class="fb-title">🌐 Web Browser</div>
+      <div class="fb-sub">index.html + app.js<br>mqtt.js WebSocket</div>
+    </div>
+    <div class="flow-arrow">⟺<br><span style="font-size:10px;color:#00d4ff">ws://broker:9001</span></div>
+    <div class="flow-box broker">
+      <div class="fb-title">🖥️ Mosquitto Broker</div>
+      <div class="fb-sub">PC / Raspberry Pi<br>Port 1883 + 9001</div>
+    </div>
+    <div class="flow-arrow">⟺<br><span style="font-size:10px;color:#00e88a">TCP 1883</span></div>
+    <div class="flow-box esp">
+      <div class="fb-title">🔌 ESP32</div>
+      <div class="fb-sub">PubSubClient<br>WiFi STA mode</div>
+    </div>
+  </div>
+
+  <div class="topic-table">
+    <div>
+      <h4>📤 ESP32 Publish (gửi lên)</h4>
+      <div class="topic-row topic-pub"><div class="topic-name">home/sensor/dht1</div><div class="topic-desc">Nhiệt độ & độ ẩm phòng khách</div></div>
+      <div class="topic-row topic-pub"><div class="topic-name">home/sensor/dht2</div><div class="topic-desc">Nhiệt độ & độ ẩm phòng ngủ</div></div>
+      <div class="topic-row topic-pub"><div class="topic-name">home/door/event</div><div class="topic-desc">Vân tay, mở/khóa cửa</div></div>
+      <div class="topic-row topic-pub"><div class="topic-name">home/status</div><div class="topic-desc">Trạng thái tổng (retained)</div></div>
+      <div class="topic-row topic-pub"><div class="topic-name">home/ack</div><div class="topic-desc">Xác nhận lệnh</div></div>
+    </div>
+    <div>
+      <h4>📥 Web Subscribe → ESP32</h4>
+      <div class="topic-row topic-sub"><div class="topic-name">home/cmd/relay</div><div class="topic-desc">{relay:1,state:1} → bật/tắt</div></div>
+      <div class="topic-row topic-sub"><div class="topic-name">home/cmd/fan</div><div class="topic-desc">{pwm:180} → tốc độ quạt</div></div>
+      <div class="topic-row topic-sub"><div class="topic-name">home/cmd/servo</div><div class="topic-desc">{angle:90} → góc rèm</div></div>
+      <div class="topic-row topic-sub"><div class="topic-name">home/cmd/door</div><div class="topic-desc">{action:"unlock"|"lock"}</div></div>
+      <div class="topic-row topic-sub"><div class="topic-name">home/cmd/fingerprint</div><div class="topic-desc">{action:"enroll",id:3}</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PIN TABLE -->
+<div class="table-section">
+  <div class="table-title">📋 Bảng GPIO đầy đủ</div>
+  <table>
+    <tr><th>GPIO</th><th>Thiết bị</th><th>Chức năng</th><th>Loại</th><th>Ghi chú</th></tr>
+    <tr><td>GPIO 4</td><td>Buzzer</td><td>Báo hiệu âm thanh</td><td><span class="badge b-io">Digital OUT</span></td><td>Active buzzer 5V, qua transistor NPN</td></tr>
+    <tr><td>GPIO 14</td><td>Relay 3</td><td>Đèn phòng ngủ</td><td><span class="badge b-io">Digital OUT</span></td><td>LOW = BẬT relay (active-low)</td></tr>
+    <tr><td>GPIO 16</td><td>AS608 (RX2)</td><td>Nhận data từ vân tay</td><td><span class="badge b-uart">UART RX</span></td><td>Kết nối AS608 TX</td></tr>
+    <tr><td>GPIO 17</td><td>AS608 (TX2)</td><td>Gửi lệnh tới vân tay</td><td><span class="badge b-uart">UART TX</span></td><td>Kết nối AS608 RX</td></tr>
+    <tr><td>GPIO 18</td><td>Servo</td><td>Rèm cửa</td><td><span class="badge b-pwm">PWM 50Hz</span></td><td>0°=mở hoàn toàn | 90°=đóng hoàn toàn</td></tr>
+    <tr><td>GPIO 21</td><td>DHT22 #1</td><td>Nhiệt độ/độ ẩm phòng khách</td><td><span class="badge b-sig">1-Wire</span></td><td>Pull-up 10kΩ lên 3.3V</td></tr>
+    <tr><td>GPIO 22</td><td>DHT22 #2</td><td>Nhiệt độ/độ ẩm phòng ngủ</td><td><span class="badge b-sig">1-Wire</span></td><td>Pull-up 10kΩ lên 3.3V</td></tr>
+    <tr><td>GPIO 25</td><td>L298N ENA</td><td>Tốc độ quạt (PWM)</td><td><span class="badge b-pwm">PWM 5kHz</span></td><td>LEDC ch0, 8-bit (0–255)</td></tr>
+    <tr><td>GPIO 26</td><td>Relay 1</td><td>Điều hòa</td><td><span class="badge b-io">Digital OUT</span></td><td>LOW = BẬT</td></tr>
+    <tr><td>GPIO 27</td><td>Relay 2</td><td>Đèn phòng khách</td><td><span class="badge b-io">Digital OUT</span></td><td>LOW = BẬT</td></tr>
+    <tr><td>GPIO 32</td><td>L298N IN1</td><td>Chiều quay quạt A</td><td><span class="badge b-io">Digital OUT</span></td><td>IN1=HIGH, IN2=LOW → quay xuôi</td></tr>
+    <tr><td>GPIO 33</td><td>L298N IN2</td><td>Chiều quay quạt B</td><td><span class="badge b-io">Digital OUT</span></td><td>IN1=LOW, IN2=LOW → dừng</td></tr>
+  </table>
+
+  <div class="table-title">⚡ Nguồn điện</div>
+  <table>
+    <tr><th>Thiết bị</th><th>Điện áp</th><th>Dòng tối đa</th><th>Nguồn lấy từ</th></tr>
+    <tr><td>ESP32</td><td>3.3V / 5V USB</td><td>500mA</td><td>Adapter USB 5V hoặc L298N 5V out</td></tr>
+    <tr><td>DHT22 x2</td><td>3.3V</td><td>2.5mA mỗi cái</td><td>ESP32 3.3V pin</td></tr>
+    <tr><td>Servo</td><td>5V</td><td>500mA (tải)</td><td>L298N 5V out hoặc nguồn riêng</td></tr>
+    <tr><td>Relay Module x3</td><td>5V</td><td>50mA mỗi relay</td><td>L298N 5V out</td></tr>
+    <tr><td>AS608</td><td>3.3V</td><td>120mA</td><td>ESP32 3.3V pin</td></tr>
+    <tr><td>Quạt DC</td><td>12V (hoặc 5V)</td><td>500mA–2A</td><td>Nguồn 12V riêng → qua L298N</td></tr>
+    <tr><td>L298N Mini</td><td>12V input</td><td>2A/kênh</td><td>Adapter 12V 2A</td></tr>
+  </table>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
+    <div class="note-box">
+      <h3>⚠️ Lưu ý quan trọng</h3>
+      <ul>
+        <li>GND của ESP32, L298N, nguồn 12V phải nối chung (common ground)</li>
+        <li>Tụ 100–220uF lắp song song hai đầu quạt DC (chống nhiễu)</li>
+        <li>Relay module dùng transistor — GPIO 3.3V điều khiển được</li>
+        <li>AS608 dùng 3.3V, KHÔNG dùng 5V sẽ hỏng chip</li>
+        <li>Servo rút thêm dòng khi tải nặng — nên dùng nguồn riêng</li>
+        <li>Không dùng GPIO 6–11 (kết nối flash nội)</li>
+      </ul>
+    </div>
+    <div class="note-box">
+      <h3>🖥️ Cài đặt Mosquitto Broker</h3>
+      <ul>
+        <li>Cài Mosquitto: <span style="color:#00d4ff">apt install mosquitto</span></li>
+        <li>Thêm vào mosquitto.conf:</li>
+        <li style="color:#00e88a;padding-left:8px">listener 1883</li>
+        <li style="color:#00e88a;padding-left:8px">listener 9001</li>
+        <li style="color:#00e88a;padding-left:8px">protocol websockets</li>
+        <li style="color:#00e88a;padding-left:8px">allow_anonymous true</li>
+        <li>Khởi động: <span style="color:#00d4ff">systemctl start mosquitto</span></li>
+        <li>Nhấn ⚙️ trong web → nhập IP máy broker</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note-box" style="margin-top:14px">
+    <h3>📦 Thư viện Arduino cần cài (Library Manager)</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
+      <div style="background:#07090f;padding:8px;border-radius:6px;border:1px solid #1e3a5f">
+        <div style="color:#00d4ff;font-size:11px">PubSubClient</div>
+        <div style="color:#485a70;font-size:10px">Nick O'Leary</div>
+      </div>
+      <div style="background:#07090f;padding:8px;border-radius:6px;border:1px solid #1e3a5f">
+        <div style="color:#00d4ff;font-size:11px">DHT sensor library</div>
+        <div style="color:#485a70;font-size:10px">Adafruit</div>
+      </div>
+      <div style="background:#07090f;padding:8px;border-radius:6px;border:1px solid #1e3a5f">
+        <div style="color:#00d4ff;font-size:11px">Adafruit Unified Sensor</div>
+        <div style="color:#485a70;font-size:10px">Adafruit</div>
+      </div>
+      <div style="background:#07090f;padding:8px;border-radius:6px;border:1px solid #1e3a5f">
+        <div style="color:#00d4ff;font-size:11px">ESP32Servo</div>
+        <div style="color:#485a70;font-size:10px">Kevin Harrington</div>
+      </div>
+      <div style="background:#07090f;padding:8px;border-radius:6px;border:1px solid #1e3a5f">
+        <div style="color:#00d4ff;font-size:11px">Adafruit Fingerprint</div>
+        <div style="color:#485a70;font-size:10px">Adafruit</div>
+      </div>
+      <div style="background:#07090f;padding:8px;border-radius:6px;border:1px solid #1e3a5f">
+        <div style="color:#00d4ff;font-size:11px">ArduinoJson</div>
+        <div style="color:#485a70;font-size:10px">Benoit Blanchon</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
