@@ -26,7 +26,6 @@ const App = (() => {
     CMD_SERVO: 'home/cmd/servo',
     CMD_DOOR:  'home/cmd/door',
     CMD_FP:    'home/cmd/fingerprint',
-    CMD_MOOD:  'home/cmd/mood',
     SENSOR1:   'home/sensor/dht1',
     SENSOR2:   'home/sensor/dht2',
     DOOR_EVT:  'home/door/event',
@@ -41,20 +40,10 @@ const App = (() => {
     acOn:false, acTarget:22, acAutoThresh:28, acAuto:true,
     fanOn:false, fanSpeed:0,
     curtainPos:100, curtainAuto:true,
-    currentMood:'dawn', autoSchedule:true,
-    roomLights:{ living:{on:true,dim:75}, bedroom:{on:true,dim:30}, kitchen:{on:false,dim:100} },
     tempHistory:[], mqttClient:null, mqttConnected:false,
     guestTimer:null, guestEnd:null,
   };
 
-  const MOODS = {
-    dawn:  {label:'Bình minh', kelvin:'3000K', bulb:'#ffd080', glow:'rgba(255,160,60,0.3)'},
-    day:   {label:'Ban ngày',  kelvin:'6500K', bulb:'#e8f4ff', glow:'rgba(240,250,255,0.35)'},
-    sunset:{label:'Hoàng hôn',kelvin:'2700K', bulb:'#ff9060', glow:'rgba(255,80,20,0.3)'},
-    night: {label:'Ban đêm',  kelvin:'1800K', bulb:'#6080ff', glow:'rgba(40,60,200,0.2)'},
-    work:  {label:'Làm việc', kelvin:'4000K', bulb:'#d0e8ff', glow:'rgba(180,220,255,0.3)'},
-    relax: {label:'Thư giãn', kelvin:'2200K', bulb:'#cc66ff', glow:'rgba(150,40,255,0.25)'},
-  };
 
   /* =========================================================  MQTT  */
   function loadMqttLib(cb) {
@@ -174,7 +163,7 @@ const App = (() => {
     const hb=document.getElementById('hum-bar');  if(hb) hb.style.width=STATE.hum+'%';
     const pw=(0.3+(STATE.acOn?.8:0)+(STATE.fanOn?.05*STATE.fanSpeed/100:0)).toFixed(1);
     setEl('power-display', pw+' kW');
-    const act=[STATE.acOn,STATE.fanOn,...Object.values(STATE.roomLights).map(r=>r.on)].filter(Boolean).length;
+    const act=[STATE.acOn,STATE.fanOn].filter(Boolean).length;
     setEl('device-active', act+'/7');
     updateGauge(STATE.temp); setEl('home-gauge-text',STATE.temp.toFixed(0)+'°');
     renderSparkline();
@@ -225,10 +214,6 @@ const App = (() => {
       const cl=document.getElementById('clock'); if(cl) cl.textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
       const dl=document.getElementById('date-display');
       if(dl){ const D=['CN','T2','T3','T4','T5','T6','T7']; dl.textContent=`${D[n.getDay()]} ${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()}`; }
-      if(STATE.autoSchedule){
-        const h=n.getHours(), m=h>=5&&h<8?'dawn':h>=8&&h<17?'day':h>=17&&h<20?'sunset':'night';
-        if(m!==STATE.currentMood) setMoodSilent(m);
-      }
     }
     tick(); setInterval(tick,1000);
   }
@@ -367,34 +352,6 @@ const App = (() => {
   function setCurtainPreset(pos){ setCurtain(pos); toast(`🪟 Rèm: ${pos===0?'Đóng':pos===100?'Mở':'50%'}`,'ok'); }
   function toggleCurtainAuto(on){ STATE.curtainAuto=on; const h=document.getElementById('curtain-auto-hint'); if(h) h.style.opacity=on?'1':'0.3'; }
 
-  /* =========================================================  LIGHT  */
-  function setMood(mood,el){
-    STATE.currentMood=mood;
-    document.querySelectorAll('.mood-big').forEach(m=>m.classList.remove('active')); if(el) el.classList.add('active');
-    applyMoodUI(mood); pub(T.CMD_MOOD,{mood});
-    toast(`${MOODS[mood]?.label} — ${MOODS[mood]?.kelvin}`,'ok');
-    const b=document.getElementById('light-badge-home'); if(b) b.textContent=MOODS[mood]?.label;
-  }
-  function setMoodSilent(mood){
-    STATE.currentMood=mood;
-    document.querySelectorAll('.mood-big').forEach(m=>m.classList.remove('active'));
-    const el=document.querySelector(`[data-mood="${mood}"]`); if(el) el.classList.add('active');
-    applyMoodUI(mood);
-  }
-  function applyMoodUI(mood){
-    const m=MOODS[mood]; if(!m) return;
-    const g=document.getElementById('rp-glow'); if(g) g.style.background=`radial-gradient(circle,${m.glow},transparent 70%)`;
-    ['rp-bulb1','rp-bulb2'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.background=m.bulb;b.style.boxShadow=`0 0 14px ${m.bulb}`;}});
-    setEl('pi-mood',m.label); setEl('pi-color',m.bulb); setEl('pi-kelvin',m.kelvin);
-  }
-  function setRoomLight(room,dim){ STATE.roomLights[room].dim=parseInt(dim); setEl('pi-bright',dim+'%'); }
-  function toggleRoomLight(room,on){
-    STATE.roomLights[room].on=on;
-    const relay=room==='living'?2:room==='bedroom'?3:0;
-    if(relay) pub(T.CMD_RELAY,{relay,state:on?1:0});
-    toast(`${on?'💡':'○'} Đèn ${room}: ${on?'BẬT':'TẮT'}`,on?'ok':'info');
-  }
-  function toggleAutoSchedule(on){ STATE.autoSchedule=on; const tl=document.getElementById('schedule-timeline');if(tl) tl.style.opacity=on?'1':'0.3'; }
 
   /* =========================================================  TABS  */
   function switchTab(btn){
@@ -433,7 +390,7 @@ const App = (() => {
 
   /* =========================================================  INIT  */
   function init(){
-    startClock(); applyMoodUI('dawn'); setCurtain(100);
+    startClock(); setCurtain(100);
     const ipEl=document.getElementById('esp-ip'); if(ipEl) ipEl.value=CFG.brokerIP;
     const pEl=document.getElementById('esp-port'); if(pEl) pEl.value=CFG.wsPort;
     log('✓ NEXTHOME khởi động','ok');
@@ -451,7 +408,6 @@ const App = (() => {
     toggleAC, adjustAC, toggleACauto, setACThresh,
     toggleFan, setFanSpeed, setFanPreset,
     setCurtain, setCurtainPreset, toggleCurtainAuto,
-    setMood, setRoomLight, toggleRoomLight, toggleAutoSchedule,
     openModal, closeModal, saveConfig,
   };
 })();
